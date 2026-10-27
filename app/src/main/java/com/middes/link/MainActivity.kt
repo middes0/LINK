@@ -14,29 +14,12 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var preview: ImageView
     private var captureService: ScreenCaptureService? = null
     private var bound = false
-
-    private val capturePermission = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val serviceIntent = Intent(this, ScreenCaptureService::class.java).apply {
-                putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, result.resultCode)
-                putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, result.data)
-            }
-            startForegroundService(serviceIntent)
-            status.text = "Permissão concedida. Iniciando captura local…"
-            bindService(Intent(this, ScreenCaptureService::class.java), connection, Context.BIND_AUTO_CREATE)
-        } else {
-            status.text = "Captura cancelada. Nenhuma tela está sendo compartilhada."
-        }
-    }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -60,6 +43,24 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         buildUi()
+    }
+
+    @Deprecated("Usa o fluxo de permissão de captura do Android")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_CAPTURE) return
+
+        if (resultCode == RESULT_OK && data != null) {
+            val serviceIntent = Intent(this, ScreenCaptureService::class.java).apply {
+                putExtra(ScreenCaptureService.EXTRA_RESULT_CODE, resultCode)
+                putExtra(ScreenCaptureService.EXTRA_RESULT_DATA, data)
+            }
+            startForegroundService(serviceIntent)
+            status.text = "Permissão concedida. Iniciando captura local…"
+            bindService(Intent(this, ScreenCaptureService::class.java), connection, Context.BIND_AUTO_CREATE)
+        } else {
+            status.text = "Captura cancelada. Nenhuma tela está sendo compartilhada."
+        }
     }
 
     private fun buildUi() {
@@ -91,7 +92,8 @@ class MainActivity : Activity() {
             text = "Autorizar captura de tela"
             setOnClickListener {
                 val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-                capturePermission.launch(manager.createScreenCaptureIntent())
+                @Suppress("DEPRECATION")
+                startActivityForResult(manager.createScreenCaptureIntent(), REQUEST_CAPTURE)
             }
         }
         val stop = Button(this).apply {
@@ -132,5 +134,9 @@ class MainActivity : Activity() {
             bound = false
         }
         super.onDestroy()
+    }
+
+    companion object {
+        private const val REQUEST_CAPTURE = 4107
     }
 }
