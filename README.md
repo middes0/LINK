@@ -4,7 +4,7 @@ Projeto Android nativo para visualizar a tela de outro dispositivo com autoriza�
 
 ## Estado atual
 
-Este repositório inicia o MVP de captura de tela local. Ele ainda **não conecta dois celulares pela internet** e não oferece controle remoto. A primeira etapa é compilar e validar a captura autorizada em um Android real.
+Este repositório contém a primeira versão do MVP de captura e prévia local da tela. Ele ainda **não conecta dois celulares pela internet** e não oferece controle remoto. O próximo passo é confirmar a compilação no GitHub Actions e testar em um Android real.
 
 ## Segurança
 
@@ -23,11 +23,10 @@ O APK de depuração não é uma versão final de produção.
 
 ## Próximas etapas
 
-1. Compilar e testar a captura local.
-2. Exibir os frames capturados na interface.
-3. Implementar conexão WebRTC entre dispositivos pareados.
-4. Adicionar sinalização segura e fallback TURN somente quando necessário.
-5. Avaliar controle remoto com permissões explícitas.
+1. Confirmar a compilação e testar a prévia de captura em um Android real.
+2. Implementar conexão WebRTC entre dispositivos pareados.
+3. Adicionar sinalização segura e fallback TURN somente quando necessário.
+4. Avaliar controle remoto com permissões explícitas.
 
 ## Requisitos
 
