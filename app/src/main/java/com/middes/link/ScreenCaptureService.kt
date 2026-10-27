@@ -71,6 +71,13 @@ class ScreenCaptureService : Service() {
 
         worker = HandlerThread("LINK-screen-capture").also { it.start() }
         val handler = Handler(worker!!.looper)
+        projection?.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                virtualDisplay?.release()
+                virtualDisplay = null
+                stopSelf()
+            }
+        }, handler)
         imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
         imageReader?.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
