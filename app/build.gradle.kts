@@ -11,8 +11,8 @@ android {
         applicationId = "com.middes.link"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     buildFeatures {
@@ -31,4 +31,5 @@ android {
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("io.github.webrtc-sdk:android:125.6422.07")
 }
