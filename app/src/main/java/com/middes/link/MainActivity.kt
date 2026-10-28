@@ -2,6 +2,10 @@ package com.middes.link
 
 import android.app.Activity
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import android.os.Build
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.view.Gravity
@@ -44,6 +48,16 @@ class MainActivity : Activity() {
     private var sending = false
     private var receiving = false
     private var waitingForLocalSdp = false
+    private var captureReceiverRegistered = false
+    private var pendingCaptureData: Intent? = null
+
+    private val captureReadyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val data = pendingCaptureData ?: return
+            pendingCaptureData = null
+            beginCapture(data)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -294,7 +308,33 @@ class MainActivity : Activity() {
             status.text = "Não foi possível iniciar WebRTC."
             return
         }
-        startForegroundService(Intent(this, LinkStreamingService::class.java))
+        pendingCaptureData = data
+        val filter = IntentFilter(LinkStreamingService.ACTION_READY)
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(captureReadyReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(captureReadyReceiver, filter)
+        }
+        captureReceiverRegistered = true
+        try {
+            startForegroundService(Intent(this, LinkStreamingService::class.java))
+        } catch (e: Exception) {
+            if (captureReceiverRegistered) {
+                try { unregisterReceiver(captureReadyReceiver) } catch (_: Exception) {}
+                captureReceiverRegistered = false
+            }
+            pendingCaptureData = null
+            status.text = "Não foi possível iniciar o serviço de transmissão: ${e.message ?: "erro desconhecido"}"
+        }
+    }
+
+    private fun beginCapture(data: Intent) {
+        if (!createPeer()) {
+            status.text = "Não foi possível iniciar WebRTC."
+            stopService(Intent(this, LinkStreamingService::class.java))
+            return
+        }
         try {
             capturer = ScreenCapturerAndroid(data, object : android.media.projection.MediaProjection.Callback() {
                 override fun onStop() {
@@ -322,7 +362,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun createOffer() {
+ {
         val connection = peer ?: return
         waitingForLocalSdp = true
         connection.createOffer(object : SdpObserver {
@@ -422,6 +462,11 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        if (captureReceiverRegistered) {
+            try { unregisterReceiver(captureReadyReceiver) } catch (_: Exception) {}
+            captureReceiverRegistered = false
+        }
+        pendingCaptureData = null
         resetConnection()
         videoView.release()
         factory?.dispose()
