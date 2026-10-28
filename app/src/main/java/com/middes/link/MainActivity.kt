@@ -9,6 +9,7 @@ import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.IBinder
 import android.view.Gravity
+import android.view.WindowManager
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
@@ -42,6 +43,11 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Evita que a própria janela do LINK apareça na captura e crie o efeito de espelho infinito.
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
         buildUi()
     }
 
