@@ -40,6 +40,7 @@ class LinkStreamingService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+        sendBroadcast(Intent(ACTION_READY).setPackage(packageName))
         return START_NOT_STICKY
     }
 
@@ -51,6 +52,7 @@ class LinkStreamingService : Service() {
     }
 
     companion object {
+        const val ACTION_READY = "com.middes.link.ACTION_CAPTURE_SERVICE_READY"
         private const val CHANNEL_ID = "link_streaming"
         private const val NOTIFICATION_ID = 68
     }
