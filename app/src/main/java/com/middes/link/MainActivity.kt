@@ -362,7 +362,7 @@ class MainActivity : Activity() {
         }
     }
 
- {
+    private fun createOffer() {
         val connection = peer ?: return
         waitingForLocalSdp = true
         connection.createOffer(object : SdpObserver {
